@@ -39,7 +39,7 @@ make delete-http
 make deploy-grpc
 ```
 This will run two services: `gateway` and `backend`.
-- `gateway` exposes `/get` HTTP GET route which calls `/get` HTTP GET route on `backend` once invoked.
+- `gateway` exposes `/get` HTTP GET route which communicates with `backend` using gRPC simple-RPC once invoked.
 - `backend` exposes `/get` HTTP GET route which runs CPU intesive task before returning a response.
     - the exact task is just applying sha256 hashing 100 times on a string.
 
