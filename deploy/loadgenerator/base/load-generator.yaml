@@ -1,0 +1,57 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    rca: ignore
+  creationTimestamp: null
+  name: loadgenerator
+  namespace: hexagon
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: loadgenerator
+    spec:
+      restartPolicy: Never
+      containers:
+      - command:
+        - k6
+        - run
+        - --quiet
+        - --config
+        - /scripts/options.json
+        - /scripts/script.js
+        image: grafana/k6:0.47.0
+        name: loadgenerator
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: /scripts/script.js
+          subPath: script.js
+          name: config
+        - mountPath: /scripts/options.json
+          subPath: options.json
+          name: options
+      volumes:
+      - configMap:
+          items:
+          - key: script.js
+            path: script.js
+          name: loadgenerator-config
+        name: config
+      - configMap:
+          items:
+          - key: options.json
+            path: options.json
+          name: loadgenerator-options-config
+        name: options

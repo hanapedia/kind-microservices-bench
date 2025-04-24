@@ -1,0 +1,48 @@
+adapters:
+- server:
+    action: get
+    payload: {}
+    route: get
+    variant: rest
+  tasks:
+  - adapter:
+      stressor:
+        iters: 2
+        name: cpu-stressor
+        payload: {}
+        threads: 1
+        variant: cpu
+    resiliency:
+      adaptiveCallTimeout: {}
+      adaptiveTaskTimeout: {}
+      retry:
+        enabled: false
+      circuitBreaker:
+        enabled: false
+  - adapter:
+      invocation:
+        action: simpleRpc
+        payload: {}
+        route: get
+        service: backend
+        variant: grpc
+    resiliency:
+      adaptiveCallTimeout: {}
+      adaptiveTaskTimeout: {}
+      callTimeout: 1s
+      retry:
+        enabled: false
+      circuitBreaker:
+        enabled: false
+      isCritical: true
+deployment:
+  replicas: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+name: gateway
+version: v1.3.6

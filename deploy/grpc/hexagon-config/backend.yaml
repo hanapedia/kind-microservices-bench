@@ -1,0 +1,31 @@
+adapters:
+- server:
+    action: simpleRpc
+    variant: grpc
+    route: get
+  tasks:
+  - adapter:
+      stressor:
+        iters: 100
+        name: cpu-stressor
+        payload: {}
+        threads: 1
+        variant: cpu
+    resiliency:
+      adaptiveCallTimeout: {}
+      adaptiveTaskTimeout: {}
+      retry:
+        enabled: false
+      circuitBreaker:
+        enabled: false
+deployment:
+  replicas: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+name: backend
+version: v1.3.6

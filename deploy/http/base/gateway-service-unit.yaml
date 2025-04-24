@@ -1,0 +1,181 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: gateway
+  namespace: hexagon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      hexagon.hanapedia.link/app: gateway
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        hexagon.hanapedia.link/app: gateway
+    spec:
+      containers:
+      - env:
+        - name: TRACING
+          value: "false"
+        - name: LOG_LEVEL
+          value: info
+        - name: HEALTH_PORT
+          value: "6060"
+        - name: METRICS_PORT
+          value: "7070"
+        - name: HTTP_PORT
+          value: "8080"
+        - name: GRPC_PORT
+          value: "9090"
+        - name: KAFKA_PORT
+          value: "9092"
+        - name: KAFKA_CLUSTER_NAME
+          value: my-cluster
+        - name: KAFKA_CLUSTER_NAMESPACE
+          value: kafka
+        - name: MONGO_USER
+          value: root
+        - name: MONGO_PASSWORD
+          value: password
+        - name: MONGO_PORT
+          value: "27017"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: OTEL_COLLECTOR_NAME
+          value: otel-collector-collector
+        - name: OTEL_COLLECTOR_NAMESPACE
+          value: monitoring
+        - name: OTEL_COLLECTOR_PORT
+          value: "4317"
+        image: hexagonbenchmark/service-unit:v1.3.6
+        imagePullPolicy: Always
+        name: gateway
+        ports:
+        - containerPort: 6060
+          name: health
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: grpc
+        - containerPort: 7070
+          name: metrics
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: /app/config/
+          name: config
+      volumes:
+      - configMap:
+          items:
+          - key: config
+            path: service-unit.yaml
+          name: gateway-config
+        name: config
+status: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    hexagon.hanapedia.link/app: gateway
+  name: gateway
+  namespace: hexagon
+spec:
+  ports:
+  - name: health
+    port: 6060
+    protocol: TCP
+    targetPort: health
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: http
+  - name: grpc
+    port: 9090
+    protocol: TCP
+    targetPort: grpc
+  - name: metrics
+    port: 7070
+    protocol: TCP
+    targetPort: metrics
+  selector:
+    hexagon.hanapedia.link/app: gateway
+status:
+  loadBalancer: {}
+
+---
+apiVersion: v1
+data:
+  config: |
+    adapters:
+    - server:
+        action: get
+        payload: {}
+        route: get
+        variant: rest
+      tasks:
+      - adapter:
+          stressor:
+            iters: 2
+            name: cpu-stressor
+            payload: {}
+            threads: 1
+            variant: cpu
+        resiliency:
+          adaptiveCallTimeout: {}
+          adaptiveTaskTimeout: {}
+          retry:
+            enabled: false
+          circuitBreaker:
+            enabled: false
+      - adapter:
+          invocation:
+            action: get
+            payload: {}
+            route: get
+            service: backend
+            variant: rest
+        resiliency:
+          adaptiveCallTimeout: {}
+          adaptiveTaskTimeout: {}
+          callTimeout: 1s
+          retry:
+            enabled: false
+          circuitBreaker:
+            enabled: false
+          isCritical: true
+    deployment:
+      replicas: 1
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+    name: gateway
+    version: v1.3.6
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: gateway-config
+  namespace: hexagon
+

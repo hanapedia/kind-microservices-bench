@@ -1,0 +1,18 @@
+{
+   "scenarios":{
+      "trunk0":{
+         "executor":"ramping-arrival-rate",
+         "startTime":"30s",
+         "startRate":1,
+         "timeUnit":"1s",
+         "stages":[
+            {
+               "duration":"60s",
+               "target":500
+            }
+          ],
+         "preAllocatedVUs":1000
+      }
+   },
+   "discardResponseBodies":true
+}
