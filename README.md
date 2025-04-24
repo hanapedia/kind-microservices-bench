@@ -12,7 +12,7 @@ Start a kind cluster by running the following.
 make start
 ```
 
-### A Simple REST interaction
+### Simple REST interaction
 #### 1. Deploy the microservices
 ```sh
 make deploy-http
@@ -33,7 +33,7 @@ This will deploy Grafana K6 Worker to run a stress test for 1 minute. It will ou
 make delete-http
 ```
 
-### A gRPC simple-RPC interaction
+### gRPC simple-RPC interaction
 #### 1. Deploy the microservices
 ```sh
 make deploy-grpc
@@ -47,9 +47,15 @@ This will run two services: `gateway` and `backend`.
 ```sh
 make run
 ```
-This will deploy Grafana K6 Worker to run a stress test for 1 minute. It will output the summary of the test when done.
+This will deploy Grafana K6 Worker to run a stress test for 1 minute. It will output the summary of the test when done. The summary will be saved as 
 
 #### 3. Remove the microservices
 ```sh
 make delete-http
+```
+
+### Clean up
+Stop kind cluster
+```sh
+make stop
 ```
